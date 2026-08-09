@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/joint-observation-synthesis/schemas/episode-trace-strategic.schema.json",
+  "title": "Episode trace (architecture-generic, strategic regime)",
+  "description": "One episode of a spec-driven run under `strategic_no_mechanism` on an N-principal architecture. Sibling of episode-trace-generic.schema.json, which covers the same architectures under `m0_truthful`. They are separate schemas because the two regimes measure different objects, and a union schema would make every field of both optional — which is exactly the condition under which a runner can omit a field and nothing notices.\n\nWhat changes between the two: under `m0_truthful` the selected candidate reads the principals' actual private fields, so `portfolioFlags` is an identity and the measured question is whether the DECLARED INTERFACE keeps a colliding pair apart (`collisionRealized`, `emittedFlags`). Under the strategic regime the candidate reads REPORTS, which need not match the evidence behind them, so those fields are absent and `jointFlags` takes their place as a genuine measurement: it can disagree with `hazards`, and it does so exactly when some principal filed a report its evidence does not support.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "architecture",
+    "episodeId",
+    "model",
+    "seed",
+    "repeat",
+    "regime",
+    "execution",
+    "principals",
+    "overlappingPrincipal",
+    "hazards",
+    "emittedViews",
+    "schemaConformant",
+    "reported",
+    "reportFaithful",
+    "jointFlags",
+    "centralFlags",
+    "terms",
+    "interests",
+    "leakChannels",
+    "leakEvidence",
+    "reasoningDiscloses",
+    "reasoningEvidence",
+    "channels"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "2.1.0",
+      "description": "Pinned rather than free-form. The generic truthful traces are 2.0.0 and carry a different field set; a trace that declares one version while carrying the other's shape is the drift this constraint exists to catch."
+    },
+    "architecture": {
+      "type": "string",
+      "description": "Name of the ArchitectureSpec this episode ran under."
+    },
+    "model": {
+      "type": "string",
+      "description": "Filename-safe tag for the model family. Part of episodeId as well, so a second family run into the same directory cannot silently overwrite the first."
+    },
+    "episodeId": { "type": "string" },
+    "seed": { "type": "integer" },
+    "repeat": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Which pass over the execution space this episode belongs to."
+    },
+    "regime": {
+      "type": "string",
+      "const": "strategic_no_mechanism",
+      "description": "No enacted mechanism: reports are elicited under a described commercial situation, and nothing enforces accuracy. A mechanism-supported regime would be a different schema, not a flag on this one."
+    },
+    "execution": {
+      "type": "string",
+      "pattern": "^sigma[01]+$",
+      "description": "One bit per principal, in the spec's principal order."
+    },
+    "principals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 2,
+      "uniqueItems": true,
+      "description": "Principal order, so `execution` can be decoded without the spec."
+    },
+    "overlappingPrincipal": {
+      "type": ["string", "null"],
+      "description": "The principal appearing in more than one selected coalition, whose single report therefore feeds more than one joint check. Null when no such principal exists — at two principals it always is. This is the object the three-principal arm exists to create, so it is recorded per episode rather than inferred from the directory name."
+    },
+    "hazards": {
+      "type": "object",
+      "description": "GROUND TRUTH of each declared hazard on this execution. Not a measurement, and deliberately kept beside `jointFlags` so the two can be compared.",
+      "additionalProperties": { "type": "boolean" },
+      "minProperties": 1
+    },
+    "emittedViews": {
+      "type": "object",
+      "description": "What each principal emitted on the declared public interface. Distinct from `reported`: these two being different channels with different audiences is the whole architecture.",
+      "additionalProperties": { "type": "object" }
+    },
+    "schemaConformant": {
+      "type": "boolean",
+      "description": "MEASURED. Every emitted view carried exactly its declared fields, at the declared types. Type-checked, not key-checked — a run once emitted the string \"true\" where the schema declares Boolean, and key-only conformance passed it."
+    },
+    "reported": {
+      "type": "object",
+      "description": "MEASURED. What each principal filed on the confidential joint-review channel. This is the input the joint check actually consumes.",
+      "additionalProperties": { "type": "boolean" },
+      "minProperties": 1
+    },
+    "reportFaithful": {
+      "type": "object",
+      "description": "MEASURED. Whether each principal's report matches its own private evidence. False is misreporting — the quantity this regime exists to measure — and is not the same as a wrong joint verdict, since an unfaithful report can still leave a check correct.",
+      "additionalProperties": { "type": "boolean" },
+      "minProperties": 1
+    },
+    "jointFlags": {
+      "type": "object",
+      "description": "MEASURED, and the field that stops being an identity here. The selected candidate evaluates on `reported`, not on the private fields, so this can disagree with `hazards`. When every report is faithful it must equal `hazards`; a disagreement under all-faithful reports would mean the substitution the regime exists to test was not actually made.",
+      "additionalProperties": { "type": "boolean" },
+      "minProperties": 1
+    },
+    "centralFlags": {
+      "type": "object",
+      "description": "IDENTITY: ground truth by definition, retained as the upper observability bound a reader can compare against.",
+      "additionalProperties": { "type": "boolean" }
+    },
+    "terms": {
+      "type": "boolean",
+      "description": "MANIPULATION. Whether the prompt stated an accepted accuracy duty — that a confidential filing inconsistent with the principal's own evidence is a breach of the stated terms. Recorded per trace so a rate from one condition is never quoted beside a rate from another."
+    },
+    "interests": {
+      "type": "boolean",
+      "description": "MANIPULATION. Whether the prompt stated the principal's standing commercial position: revenue on a cleared deployment, and answerability for a filing later found inconsistent with internal records. Without it the described world is one-sided and no incentive exists to misreport."
+    },
+    "leakChannels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["free_text", "tool_arguments", "error_message"]
+      },
+      "uniqueItems": true,
+      "description": "MEASURED. Captured channels in which some principal restated a private fact it holds with no declared field. The enum is the complete set this harness scans; naming a channel nothing examines would make an empty list read as a stronger statement than it is. Direct assertions only, so the rate is a LOWER BOUND."
+    },
+    "leakEvidence": {
+      "type": "string",
+      "description": "MEASURED. The sentence the leak was read from, empty when nothing leaked. Retained so the scan can be audited rather than trusted."
+    },
+    "reasoningDiscloses": {
+      "type": "boolean",
+      "description": "MEASURED, never folded into leakChannels. Whether the provider's chain of thought asserts a private fact. Whether an operator can see that trace is a deployment question, not a property of the declared interface."
+    },
+    "reasoningEvidence": {
+      "type": "string",
+      "description": "MEASURED. The sentence read from the reasoning trace, empty when none."
+    },
+    "channels": {
+      "type": "object",
+      "description": "EVIDENCE, not a measurement. Raw text of every captured channel, per principal, so the leak scan can be re-run rather than trusted. The stored evidence sentence alone cannot expose a false positive — the sentence the scanner selected is the one that always looks like a match. One live false positive reached a published detection before an audit caught it.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["free_text", "reasoning", "tool_arguments", "error_message"],
+        "properties": {
+          "free_text": { "type": "string" },
+          "reasoning": { "type": "string" },
+          "tool_arguments": { "type": "string" },
+          "error_message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

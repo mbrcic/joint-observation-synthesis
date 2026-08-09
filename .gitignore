@@ -1,0 +1,25 @@
+# The resolved Atlas dependency is committed so a clean checkout reproduces the Lean
+# build. The cache and generated build products remain local.
+formal/lakefile.toml
+formal/lake-manifest.json
+
+# Lean / Lake
+formal/.lake/
+formal/build/
+*.olean
+*.ilean
+*.trace
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets — never commit
+.env
+.env.local
+
+# OS / editor
+.DS_Store
+*.swp

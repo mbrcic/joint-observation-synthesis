@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mbrcic/joint-observation-synthesis/schemas/emitted-view.schema.json",
+  "title": "Declared emitted interface",
+  "description": "The observation schema: exactly what each principal exposes through its declared interface, and nothing else. Fixed BEFORE any scaled pilot run, per the inclusion gate. An episode conforms when every emitted view validates against this schema and carries no field outside it. Conformance is measured, never repaired: a run that leaks the checkpoint bit through free text, tool arguments, error messages, metadata, or timing is recorded as non-conformant, not cleaned.",
+  "type": "object",
+  "required": ["schemaVersion", "dataOwner", "modelOwner"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+
+    "dataOwner": {
+      "description": "The data owner DOES declare the dataset-restriction bit. Its emitted view is genuinely informative.",
+      "type": "object",
+      "required": ["datasetRestricted"],
+      "additionalProperties": false,
+      "properties": {
+        "datasetRestricted": {
+          "type": "boolean",
+          "description": "Mirrors the private bit `a`. Disclosed by design."
+        }
+      }
+    },
+
+    "modelOwner": {
+      "description": "The model owner does NOT declare checkpoint access policy. The private bit `b` exists throughout and must never appear here — any occurrence is a leak and marks the episode non-conformant.",
+      "type": "object",
+      "required": ["modelCardPublished"],
+      "additionalProperties": false,
+      "properties": {
+        "modelCardPublished": {
+          "type": "boolean",
+          "description": "Carries no information about checkpoint restriction. Present so the declared interface is non-empty without being informative about `b`. Its value is constant across all four executions and is stated to the model owner as evidence, which is what makes the Bool a faithful instantiation of the Lean `Unit`: a declared field the principal holds no evidence about would be guessed, and the guess rate would register as instability of the interface rather than as a property of it."
+        }
+      }
+    }
+  },
+
+  "$comment": "Mirrors the Lean architecture: EmittedView dataOwner = Bool (emit = identity), EmittedView modelOwner = Unit (emit forgets b). The complete existing emitted interface is the pair of both objects above; the formal result says that pair is insufficient to decide h = a AND b, and that no computation over it recovers the distinction."
+}

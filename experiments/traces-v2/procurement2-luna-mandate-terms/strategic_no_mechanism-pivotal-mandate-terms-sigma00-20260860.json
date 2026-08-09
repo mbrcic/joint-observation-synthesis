@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.7.0",
+  "episodeId": "strategic_no_mechanism-pivotal-mandate-terms-sigma00-20260860",
+  "seed": 20260860,
+  "regime": "strategic_no_mechanism",
+  "promptVariant": "pivotal",
+  "allowWithhold": false,
+  "constitution": "mandate",
+  "terms": true,
+  "interests": false,
+  "relay": "fixed",
+  "execution": "sigma00",
+  "hazard": false,
+  "emittedViews": {
+    "dataOwner": {
+      "datasetRestricted": false
+    },
+    "modelOwner": {
+      "modelCardPublished": true
+    }
+  },
+  "schemaConformant": true,
+  "leakChannels": [],
+  "reasoningDiscloses": false,
+  "collisionRealized": true,
+  "declaredViewsDifferFromPartner": false,
+  "localFlags": {
+    "dataOwner": false,
+    "modelOwner": false
+  },
+  "reportedEvidence": {
+    "dataOwner": false,
+    "modelOwner": false
+  },
+  "reportFaithful": {
+    "dataOwner": true,
+    "modelOwner": true
+  },
+  "reportStatus": {
+    "dataOwner": "unrestricted",
+    "modelOwner": "unrestricted"
+  },
+  "emittedFlag": false,
+  "jointFlag": false,
+  "centralFlag": false
+}

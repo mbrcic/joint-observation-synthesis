@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mbrcic/joint-observation-synthesis/schemas/blindness-certificate.schema.json",
+  "title": "Blindness certificate",
+  "description": "Serialized evidence that a candidate observation fails to cover a hazard, or that it covers it. Mirrors the certified finite decision in the Atlas kernel; the JSON form is project-specific and is never checked into the Atlas.",
+  "type": "object",
+  "required": ["schemaVersion", "architecture", "candidate", "hazard", "verdict"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1.0"
+    },
+    "atlasCommit": {
+      "type": "string",
+      "description": "Exact Atlas commit whose kernel semantics this certificate refers to.",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "architecture": {
+      "type": "object",
+      "required": ["id", "executions", "principals"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "executions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Names of the finitely many executions."
+        },
+        "principals": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "required": ["id", "coalition"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "coalition": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Principals whose private evidence the candidate may read. Must be a subset of architecture.principals."
+        },
+        "kind": {
+          "enum": ["local", "emittedArchitecture", "joint"],
+          "description": "local = a single principal's declared emitted view; emittedArchitecture = arbitrary computation over the tuple of all currently emitted views; joint = a permitted predicate over coalition-indexed private evidence."
+        }
+      }
+    },
+    "hazard": {
+      "type": "object",
+      "required": ["id", "valuation"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "valuation": {
+          "type": "object",
+          "description": "Execution name -> hazard truth value.",
+          "additionalProperties": { "type": "boolean" }
+        }
+      }
+    },
+    "verdict": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["covers"],
+          "additionalProperties": false,
+          "properties": {
+            "covers": { "const": true }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["covers", "collisionWitness"],
+          "additionalProperties": false,
+          "properties": {
+            "covers": { "const": false },
+            "collisionWitness": {
+              "type": "object",
+              "description": "A pair of executions agreeing at the candidate output but disagreeing on the hazard.",
+              "required": ["left", "right"],
+              "additionalProperties": false,
+              "properties": {
+                "left": { "type": "string" },
+                "right": { "type": "string" },
+                "sharedOutput": {
+                  "description": "Optional rendering of the common candidate output."
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "mechanism": {
+      "type": "string",
+      "description": "Informational mechanism under which the certificate is claimed. Results in this release are stated under the fixed truthful mechanism M0 only.",
+      "default": "M0"
+    },
+    "notes": { "type": "string" }
+  }
+}

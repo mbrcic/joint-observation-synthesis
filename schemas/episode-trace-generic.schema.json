@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/joint-observation-synthesis/schemas/episode-trace-generic.schema.json",
+  "title": "Episode trace (architecture-generic)",
+  "description": "One episode of a spec-driven pilot run. Unlike episode-trace.schema.json, which fixes two principals and one hazard, this admits any principal set and any declared hazard family. The two-principal released arm keeps the original schema: its traces were produced under it and must stay valid against it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "architecture",
+    "episodeId",
+    "model",
+    "seed",
+    "repeat",
+    "regime",
+    "execution",
+    "principals",
+    "hazards",
+    "emittedViews",
+    "schemaConformant",
+    "portfolioFlags",
+    "centralFlags",
+    "localFlags",
+    "emittedFlags",
+    "collisionRealized",
+    "leakChannels",
+    "leakEvidence",
+    "reasoningDiscloses",
+    "reasoningEvidence",
+    "channels"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "architecture": {
+      "type": "string",
+      "description": "Name of the ArchitectureSpec this episode ran under."
+    },
+    "model": {
+      "type": "string",
+      "description": "Filename-safe tag for the model family behind the run. Part of episodeId too: without it, a second family run into the same directory overwrites the first and the manifest/trace bijection check still passes."
+    },
+    "episodeId": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "repeat": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Which pass over the execution space this episode belongs to. Collisions are a property of a pair of episodes, and the pair is taken within a repeat: comparing against the first observation of a partner execution mixes runs whenever declared output varies."
+    },
+    "regime": {
+      "type": "string",
+      "enum": [
+        "m0_truthful"
+      ]
+    },
+    "execution": {
+      "type": "string",
+      "pattern": "^sigma[01]+$",
+      "description": "One bit per principal, in the spec's principal order."
+    },
+    "principals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 2,
+      "description": "Principal order, so `execution` can be decoded without the spec."
+    },
+    "hazards": {
+      "type": "object",
+      "description": "Ground-truth value of each declared hazard on this execution.",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "minProperties": 1
+    },
+    "emittedViews": {
+      "type": "object",
+      "description": "What each principal actually emitted. Validated field-by-field against the declared interface by the runner, not here.",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "schemaConformant": {
+      "type": "boolean",
+      "description": "MEASURED. Every emitted view carried exactly its declared fields."
+    },
+    "portfolioFlags": {
+      "type": "object",
+      "description": "IDENTITY under m0_truthful: the selected candidate reads the actual private bits, so this is a function of ground truth. Becomes a measurement only under a strategic regime.",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "centralFlags": {
+      "type": "object",
+      "description": "IDENTITY: ground truth by definition, the upper observability bound.",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "localFlags": {
+      "type": "object",
+      "description": "IDENTITY: derived from the spec. A principal flags a hazard only where the hazard factors through that principal's own bit.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "boolean"
+        }
+      }
+    },
+    "emittedFlags": {
+      "type": "object",
+      "description": "MEASURED. Did the complete declared interface separate this execution from its colliding partner? A conformant run cannot make this fire; a leak can.",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "collisionRealized": {
+      "type": "object",
+      "description": "MEASURED. Did the predicted collision occur \u2014 the pair kept indistinguishable by the complete emitted output, declared fields and side channels alike? A property of a pair of episodes within one repeat, recomputed from both members rather than stored per-episode.",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "leakChannels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["free_text", "tool_arguments", "error_message"]
+      },
+      "uniqueItems": true,
+      "description": "MEASURED. Captured channels in which some principal restated a private fact \u2014 one it holds with no declared field. The enum is the complete set this harness scans; naming a channel nothing examines would make an empty list read as a stronger statement than it is. The scan recognizes direct assertions only, so the rate is a lower bound."
+    },
+    "leakEvidence": {
+      "type": "string",
+      "description": "MEASURED. The sentence the leak was read from, empty when nothing leaked. Retained so the scan can be audited: a leak rate nobody can check against the text is a number, not a measurement."
+    },
+    "reasoningDiscloses": {
+      "type": "boolean",
+      "description": "MEASURED, and never folded into leakChannels. Whether the provider's chain of thought asserts a private fact. Whether an operator can see that trace is a deployment question, not a property of the declared interface, so it is reported beside the leak rate rather than inside it."
+    },
+    "reasoningEvidence": {
+      "type": "string",
+      "description": "MEASURED. The sentence read from the reasoning trace, empty when none."
+    },
+    "channels": {
+      "type": "object",
+      "description": "EVIDENCE, not a measurement. The raw text of every captured channel, per principal, so the leak scan can be re-run rather than trusted. The evidence sentence alone cannot expose a false positive — the sentence the scanner selected is the one that always looks like a match.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["free_text", "reasoning", "tool_arguments", "error_message"],
+        "properties": {
+          "free_text": { "type": "string" },
+          "reasoning": { "type": "string" },
+          "tool_arguments": { "type": "string" },
+          "error_message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

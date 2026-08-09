@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "0.1.0",
+  "architecture": {
+    "id": "procurement-four-state",
+    "executions": [
+      "sigma00",
+      "sigma10",
+      "sigma01",
+      "sigma11"
+    ],
+    "principals": [
+      "dataOwner",
+      "modelOwner"
+    ]
+  },
+  "candidate": {
+    "id": "qC",
+    "coalition": [
+      "dataOwner"
+    ],
+    "kind": "joint"
+  },
+  "hazard": {
+    "id": "restrictedDatasetAndCheckpoint",
+    "valuation": {
+      "sigma00": false,
+      "sigma10": false,
+      "sigma01": false,
+      "sigma11": true
+    }
+  },
+  "verdict": {
+    "covers": false,
+    "collisionWitness": {
+      "left": "sigma10",
+      "right": "sigma11",
+      "sharedOutput": true
+    }
+  },
+  "mechanism": "M0",
+  "atlasCommit": "ff4e7ce90426e0117355c4521eed1a90796c555b"
+}

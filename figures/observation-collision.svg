@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="772" viewBox="0 0 1120 772" role="img"
+     aria-labelledby="figTitle figDesc">
+  <title id="figTitle">Two worlds no public record can tell apart, and the one joint computation that can</title>
+  <desc id="figDesc">Left: two deployments differing only in whether the model checkpoint is access-restricted.
+    Every publicly published document is identical in both, yet one deployment is safe and the other cannot be
+    audited from outside, so no analysis of published material separates them. Right: both private facts enter
+    one agreed computation that releases only its single answer bit, which equals the hazard. Neither private
+    fact is published or shared between the two companies.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#57606a"/>
+    </marker>
+    <marker id="arrowGrn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#1a7f37"/>
+    </marker>
+    <style>
+      .bg    { fill: #ffffff; }
+      .panel { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1; }
+      .box   { fill: #ffffff; stroke: #d0d7de; stroke-width: 1.25; }
+      .priv  { fill: #fbf7ff; stroke: #8250df; stroke-width: 1.25; }
+      .pub   { fill: #ffffff; stroke: #57606a; stroke-width: 1.25; stroke-dasharray: 4 3; }
+      .hz    { fill: #fff5f5; stroke: #cf222e; stroke-width: 1.75; }
+      .ok    { fill: #f2fbf5; stroke: #1a7f37; stroke-width: 1.5; }
+      .t     { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: #1f2328; }
+      .m     { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; fill: #1f2328; }
+      .mut   { fill: #57606a; }
+      .red   { fill: #cf222e; }
+      .grn   { fill: #1a7f37; }
+      .vio   { fill: #8250df; }
+      .b     { font-weight: 600; }
+      .conn  { fill: none; stroke: #57606a; stroke-width: 1.5; }
+      .connG { fill: none; stroke: #1a7f37; stroke-width: 1.75; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1120" height="690"/>
+
+  <text class="t b" x="560" y="34" font-size="20" text-anchor="middle">Two worlds the public record cannot tell apart</text>
+  <text class="t mut" x="560" y="57" font-size="12.5" text-anchor="middle">Two companies build one deployed AI system. Each privately knows one fact.</text>
+  <text class="t mut" x="560" y="75" font-size="12.5" text-anchor="middle">The danger is that BOTH are locked down: then no outsider can audit the deployment at all.</text>
+
+  <!-- ============================ LEFT PANEL ============================ -->
+  <rect class="panel" x="24" y="92" width="528" height="500" rx="8"/>
+  <text class="t b" x="44" y="118" font-size="15">What each company publishes today</text>
+  <text class="t mut" x="44" y="137" font-size="11.5">The two worlds below differ in exactly one private fact.</text>
+
+  <text class="t b" x="168" y="163" font-size="13" text-anchor="middle">World A</text>
+  <text class="t b" x="412" y="163" font-size="13" text-anchor="middle">World B</text>
+
+  <!-- private band -->
+  <text class="t vio b" x="44" y="188" font-size="10" letter-spacing="0.8">PRIVATE — NEVER LEAVES THE COMPANY</text>
+  <rect class="priv" x="44" y="196" width="248" height="76" rx="6"/>
+  <rect class="priv" x="300" y="196" width="232" height="76" rx="6"/>
+
+  <text class="t" x="58" y="219" font-size="12">Dataset locked down?</text>
+  <text class="t b" x="278" y="219" font-size="12" text-anchor="end">yes</text>
+  <text class="t" x="314" y="219" font-size="12">Dataset locked down?</text>
+  <text class="t b" x="518" y="219" font-size="12" text-anchor="end">yes</text>
+
+  <text class="t" x="58" y="248" font-size="12">Checkpoint locked down?</text>
+  <text class="t b grn" x="278" y="248" font-size="12" text-anchor="end">no</text>
+  <text class="t" x="314" y="248" font-size="12">Checkpoint locked down?</text>
+  <text class="t b red" x="518" y="248" font-size="12" text-anchor="end">YES</text>
+  <text class="t red" x="288" y="288" font-size="11" text-anchor="middle">the two worlds differ in this one fact, and nothing else</text>
+
+  <!-- public band -->
+  <text class="t b mut" x="44" y="308" font-size="10" letter-spacing="0.8">PUBLIC — ANYONE CAN READ</text>
+  <rect class="pub" x="44" y="316" width="248" height="96" rx="6"/>
+  <rect class="pub" x="300" y="316" width="232" height="96" rx="6"/>
+
+  <text class="t" x="58" y="338" font-size="11.5">Data owner's filing:</text>
+  <text class="m" x="58" y="356" font-size="11.5">"dataset: restricted"</text>
+  <text class="t" x="314" y="338" font-size="11.5">Data owner's filing:</text>
+  <text class="m" x="314" y="356" font-size="11.5">"dataset: restricted"</text>
+
+  <text class="t" x="58" y="381" font-size="11.5">Model owner's model card:</text>
+  <text class="m mut" x="58" y="399" font-size="11">capabilities, evals, licence</text>
+  <text class="t" x="314" y="381" font-size="11.5">Model owner's model card:</text>
+  <text class="m mut" x="314" y="399" font-size="11">capabilities, evals, licence</text>
+
+  <text class="t b" x="288" y="430" font-size="12" text-anchor="middle">= identical =</text>
+  <text class="t mut" x="288" y="445" font-size="11" text-anchor="middle">a model card never says whether the weights are locked</text>
+
+  <!-- verdicts -->
+  <rect class="ok" x="44" y="457" width="248" height="34" rx="6"/>
+  <rect class="hz" x="300" y="457" width="232" height="34" rx="6"/>
+  <text class="t b grn" x="168" y="479" font-size="13" text-anchor="middle">SAFE — still auditable</text>
+  <text class="t b red" x="416" y="479" font-size="13" text-anchor="middle">HAZARD — unauditable</text>
+
+  <text class="t b" x="44" y="512" font-size="12.5">Every public document is identical. One deployment is safe;</text>
+  <text class="t b" x="44" y="530" font-size="12.5">the other cannot be audited by anyone outside.</text>
+  <text class="t mut" x="44" y="554" font-size="11.5">No amount of analysis of published material separates them — the</text>
+  <text class="t mut" x="44" y="571" font-size="11.5">inputs are the same in both worlds. Nobody lied; the fact was never there.</text>
+
+  <!-- ============================ RIGHT PANEL ============================ -->
+  <rect class="panel" x="568" y="92" width="528" height="500" rx="8"/>
+  <text class="t b" x="588" y="118" font-size="15">The fix: one joint computation</text>
+  <text class="t mut" x="588" y="137" font-size="11.5">Not more disclosure. Both facts enter one agreed computation; only its answer leaves.</text>
+
+  <rect class="priv" x="588" y="168" width="176" height="44" rx="6"/>
+  <text class="t" x="602" y="187" font-size="11.5">Data owner's fact</text>
+  <text class="t mut" x="602" y="203" font-size="10.5">stays inside the company</text>
+
+  <rect class="priv" x="588" y="228" width="176" height="44" rx="6"/>
+  <text class="t" x="602" y="247" font-size="11.5">Model owner's fact</text>
+  <text class="t mut" x="602" y="263" font-size="10.5">stays inside the company</text>
+
+  <path class="conn" d="M764,190 L800,190 L800,220" marker-end="url(#arrow)"/>
+  <path class="conn" d="M764,250 L800,250 L800,222" marker-end="url(#arrow)"/>
+
+  <rect class="box" x="812" y="196" width="150" height="52" rx="6"/>
+  <text class="t b" x="887" y="218" font-size="12" text-anchor="middle">Are BOTH</text>
+  <text class="t b" x="887" y="236" font-size="12" text-anchor="middle">locked down?</text>
+
+  <path class="connG" d="M962,222 L1000,222" marker-end="url(#arrowGrn)"/>
+  <rect class="ok" x="1004" y="204" width="76" height="36" rx="6"/>
+  <text class="t b grn" x="1042" y="227" font-size="13" text-anchor="middle">one bit</text>
+
+  <text class="t b" x="588" y="302" font-size="12">What the single released bit says, in all four possible worlds:</text>
+
+  <rect class="box" x="588" y="314" width="488" height="112" rx="6"/>
+  <text class="t mut b" x="606" y="334" font-size="10.5" letter-spacing="0.6">DATASET</text>
+  <text class="t mut b" x="716" y="334" font-size="10.5" letter-spacing="0.6">CHECKPOINT</text>
+  <text class="t mut b" x="852" y="334" font-size="10.5" letter-spacing="0.6">RELEASED BIT</text>
+  <text class="t mut b" x="946" y="334" font-size="10.5" letter-spacing="0.6">MEANING</text>
+
+  <text class="t" x="606" y="356" font-size="11.5">open</text>
+  <text class="t" x="716" y="356" font-size="11.5">open</text>
+  <text class="m" x="852" y="356" font-size="11.5">0</text>
+  <text class="t mut" x="946" y="356" font-size="11.5">fine</text>
+
+  <text class="t" x="606" y="376" font-size="11.5">open</text>
+  <text class="t" x="716" y="376" font-size="11.5">locked</text>
+  <text class="m" x="852" y="376" font-size="11.5">0</text>
+  <text class="t mut" x="946" y="376" font-size="11.5">fine</text>
+
+  <text class="t" x="606" y="396" font-size="11.5">locked</text>
+  <text class="t" x="716" y="396" font-size="11.5">open</text>
+  <text class="m" x="852" y="396" font-size="11.5">0</text>
+  <text class="t mut" x="946" y="396" font-size="11.5">fine — World A</text>
+
+  <rect class="hz" x="596" y="404" width="472" height="24" rx="4"/>
+  <text class="t b" x="606" y="421" font-size="11.5">locked</text>
+  <text class="t b" x="716" y="421" font-size="11.5">locked</text>
+  <text class="m b red" x="852" y="421" font-size="11.5">1</text>
+  <text class="t b red" x="946" y="421" font-size="11.5">HAZARD — World B</text>
+
+  <text class="t b grn" x="588" y="452" font-size="12.5">The released bit is exactly the hazard: 1 only in the dangerous world.</text>
+
+  <text class="t red b" x="588" y="486" font-size="12">✗ never crosses</text>
+  <text class="t" x="588" y="505" font-size="11.5">the two private facts themselves — not published,</text>
+  <text class="t" x="588" y="522" font-size="11.5">and not shared between the two companies either</text>
+
+  <text class="t grn b" x="588" y="548" font-size="12">✓ crosses</text>
+  <text class="t" x="588" y="567" font-size="11.5">one bit: the answer, and nothing else</text>
+
+  <!-- ============================ FOOTER ============================ -->
+  <text class="t mut" x="32" y="620" font-size="11.5">In the formal model the two private facts are <tspan class="m">a</tspan> (dataset) and <tspan class="m">b</tspan> (checkpoint), the hazard is <tspan class="m">h = a ∧ b</tspan>, and World A and World B are <tspan class="m">σ10</tspan> and <tspan class="m">σ11</tspan>.</text>
+  <text class="t mut" x="32" y="639" font-size="11.5">The model owner's published record is typed <tspan class="m">Unit</tspan>: it exists, but nothing in it changes with <tspan class="m">b</tspan>. That is why the two public records are identical.</text>
+  <text class="t mut" x="32" y="658" font-size="11.5">Machine-checked in Lean 4 against the Atlas kernel. Build and axiom details are recorded in the repository.</text>
+  <text class="t mut" x="32" y="678" font-size="10.5">Whether the joint computation can be legally and technically realised, and whether both parties would truthfully supply their input, are separate questions this figure does not answer.</text>
+
+  <line x1="32" y1="694" x2="1088" y2="694" stroke="#d7dae0" stroke-width="1"/>
+
+  <text class="t mut" x="32" y="712" font-size="11">Why this split. What is public is what disclosure rules require: a filing, a model card. What is private is held there by law, contract and security practice, not by preference, so neither company can simply publish more.</text>
+  <text class="t mut" x="32" y="729" font-size="11">The checkpoint bit is the clear case: publishing whether the weights are locked tells an attacker where the soft target is, so a model card omits it and always will.</text>
+  <text class="t mut" x="32" y="746" font-size="11">Neither company can fix this alone. The hazard is a property of both facts at once, so each disclosure decision is correct on its own terms and insufficient without the other's. No principal can draw the line unilaterally.</text>
+  <text class="t mut" x="32" y="763" font-size="11">Definitions, theorems and the checked instance: <tspan class="m">github.com/mbrcic/ai-safety-formalization-atlas</tspan>, module <tspan class="m">AISafetyAtlas.Oversight.JointObservation</tspan></text>
+</svg>

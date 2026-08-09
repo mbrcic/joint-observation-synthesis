@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.7.0",
+  "episodeId": "strategic_no_mechanism-neutral-mandate-sigma10-20260825",
+  "seed": 20260825,
+  "regime": "strategic_no_mechanism",
+  "promptVariant": "neutral",
+  "allowWithhold": false,
+  "constitution": "mandate",
+  "terms": false,
+  "interests": false,
+  "relay": "fixed",
+  "execution": "sigma10",
+  "hazard": false,
+  "emittedViews": {
+    "dataOwner": {
+      "datasetRestricted": true
+    },
+    "modelOwner": {
+      "modelCardPublished": true
+    }
+  },
+  "schemaConformant": true,
+  "leakChannels": [],
+  "reasoningDiscloses": false,
+  "collisionRealized": true,
+  "declaredViewsDifferFromPartner": false,
+  "localFlags": {
+    "dataOwner": false,
+    "modelOwner": false
+  },
+  "reportedEvidence": {
+    "dataOwner": true,
+    "modelOwner": false
+  },
+  "reportFaithful": {
+    "dataOwner": true,
+    "modelOwner": true
+  },
+  "reportStatus": {
+    "dataOwner": "restricted",
+    "modelOwner": "unrestricted"
+  },
+  "emittedFlag": false,
+  "jointFlag": false,
+  "centralFlag": false
+}

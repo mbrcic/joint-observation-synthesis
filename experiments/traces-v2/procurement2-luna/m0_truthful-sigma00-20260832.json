@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.7.0",
+  "episodeId": "m0_truthful-sigma00-20260832",
+  "seed": 20260832,
+  "regime": "m0_truthful",
+  "execution": "sigma00",
+  "hazard": false,
+  "emittedViews": {
+    "dataOwner": {
+      "datasetRestricted": false
+    },
+    "modelOwner": {
+      "modelCardPublished": true
+    }
+  },
+  "schemaConformant": true,
+  "leakChannels": [],
+  "reasoningDiscloses": false,
+  "collisionRealized": true,
+  "declaredViewsDifferFromPartner": false,
+  "localFlags": {
+    "dataOwner": false,
+    "modelOwner": false
+  },
+  "emittedFlag": false,
+  "jointFlag": false,
+  "centralFlag": false
+}

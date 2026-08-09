@@ -1,0 +1,341 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Everything that needs no toolchain and no API key. This job is what makes the
+  # numbers on the landing page falsifiable by a reader: it re-derives them from the
+  # released traces on every push, so a claim that drifts from its evidence breaks CI.
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        run: pip install --disable-pip-version-check jsonschema
+
+      # The strategic game states five results and checks each by enumerating the
+      # payoff table. A claim that verifies itself is worth exactly as much as the
+      # verification running, so it runs here.
+      - name: Strategic game results
+        run: python3 strategic/game.py
+
+      # The leak scanner decides rate 4, because the emitted-interface detector reads
+      # the value it extracts. Too loose and it manufactures detections out of prose
+      # that reveals nothing; too tight and it reports a collision that did not survive.
+      # Both errors have happened, so their cases are pinned.
+      - name: Leak scanner cases
+        working-directory: experiments
+        run: python3 test_leak_scan.py
+
+      # Detector and measurement logic. Seven measurement-affecting defects shipped in
+      # this harness and none was caught by a test; each of these pins one of them or the
+      # logic whose failure would produce the next.
+      - name: Detector unit tests
+        working-directory: experiments
+        run: python3 test_monitors.py
+
+      # Statistics and aggregation. Both worst defects in this project's history lived
+      # downstream of the detectors: a derived verdict read from the artifact instead of
+      # recomputed, and inferential statistics that existed only in a shell history.
+      - name: Analysis unit tests
+        working-directory: experiments
+        run: python3 test_analysis.py
+
+      # Verifies the COMMITTED certificate files, never a freshly generated copy. An
+      # earlier --check rebuilt them in memory, so a stale or edited artifact kept CI
+      # green — the check could not fail on the thing it was checking.
+      - name: Committed certificates verify
+        working-directory: experiments
+        run: python3 emit_certificates.py --check
+
+      # The released traces must agree with the current monitor semantics. This is the
+      # check whose absence let a repaired monitor coexist with unrepaired evidence for
+      # a full review cycle.
+      - name: No stale derived verdicts
+        working-directory: experiments
+        run: python3 migrate_traces.py --dry-run | tee /dev/stderr | grep -q "0 stale"
+
+      # Guards are worthless until seen to fail. These drive each one deliberately and
+      # assert it refuses.
+      - name: Guards actually fail when they should
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/guards"; rm -rf "$work"; cp -r . "$work"
+
+          # A repository with a formal consumer must ship its resolved lakefile.
+          if [ ! -f "$work/formal/lakefile.toml" ]; then
+            echo "unexpected: no committed lakefile" >&2; exit 1
+          fi
+          rm "$work/formal/lakefile.toml"
+          if [ -f "$work/formal/lakefile.toml" ]; then
+            echo "pin guard did not see the tampered state" >&2; exit 1
+          fi
+          echo "pin guard: refuses a checkout with no resolved lakefile"
+
+          # The committed pin names a public dependency and an exact tree. Both matter
+          # to a reader: a branch or tag can move under a claim that says "reproduce this".
+          # Checked against the real file, not a copy.
+          grep -q '^git = "https://github.com/mbrcic/ai-safety-formalization-atlas\.git"$' \
+            formal/lakefile.toml
+          grep -qE '^rev = "[0-9a-f]{40}"$' formal/lakefile.toml
+          echo "pin: public URL, full 40-character revision"
+
+          # Certificate check must reject a tampered committed artifact.
+          python3 - "$work" <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path(sys.argv[1]) / "certificates" / "qCD.json"
+          d = json.loads(p.read_text()); d["verdict"] = {"covers": False,
+              "collisionWitness": {"left": "sigma10", "right": "sigma11"}}
+          p.write_text(json.dumps(d, indent=2) + "\n")
+          PY
+          if (cd "$work/experiments" && python3 emit_certificates.py --check); then
+            echo "certificate check accepted a falsified verdict" >&2; exit 1
+          fi
+          echo "certificate check: refuses a falsified committed verdict"
+
+          # Stale-verdict detection must fire on a corrupted trace.
+          python3 - "$work" <<'PY'
+          import glob, json, pathlib, sys
+          f = sorted(glob.glob(str(pathlib.Path(sys.argv[1]) / "experiments/traces/m0_*.json")))[0]
+          d = json.loads(open(f).read()); d["collisionRealized"] = not d["collisionRealized"]
+          open(f, "w").write(json.dumps(d, indent=2) + "\n")
+          PY
+          if (cd "$work/experiments" && python3 validate_traces.py); then
+            echo "validator accepted a stale derived verdict" >&2; exit 1
+          fi
+          echo "validator: refuses a stale derived verdict"
+
+      # The declared interface is a schema, so it has to be enforced by a real
+      # validator rather than by the harness that also produced the data. `--tree` adds
+      # everything under traces-v2/, which shipped with no validator entry at all: its
+      # derived verdicts were recomputed by test_analyze_generic.py, but nothing checked
+      # the trace SHAPE, so a runner that dropped a field would have produced traces
+      # every consumer read and no gate refused.
+      - name: Validate every trace against its schema
+        run: python3 experiments/validate_traces.py --tree
+
+      # The generic schemas are new, and a validator nobody has seen fail is a validator
+      # nobody should trust. Four ways a spec-driven run can go wrong, each driven
+      # deliberately against a throwaway copy.
+      - name: Generic schema validation actually fails when it should
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/schemas"; rm -rf "$work"; mkdir -p "$work"
+          cp -r experiments schemas "$work/"
+          python3 - "$work" <<'PY'
+          import json, pathlib, sys
+          d = pathlib.Path(sys.argv[1]) / "experiments/traces-v2/portfolio3d1-strategic-deepseek"
+          f = sorted(p for p in d.glob("*.json") if "manifest" not in p.name)
+          a = json.loads(f[0].read_text()); a.pop("reportFaithful"); f[0].write_text(json.dumps(a))
+          b = json.loads(f[1].read_text()); b["schemaVersion"] = "2.0.0"; f[1].write_text(json.dumps(b))
+          c = json.loads(f[2].read_text()); c["confidence"] = 0.9; f[2].write_text(json.dumps(c))
+          e = json.loads(f[4].read_text())
+          e["episodeId"] = json.loads(f[3].read_text())["episodeId"]; f[4].write_text(json.dumps(e))
+          PY
+          if (cd "$work/experiments" && python3 validate_traces.py --tree); then
+            echo "validator accepted a tampered generic trace" >&2; exit 1
+          fi
+          echo "generic validator: refuses a missing field, a mislabelled schema version,"
+          echo "an undeclared field, and a duplicated episodeId"
+
+      # The spec-driven arms have their own recompute suite: verdicts re-derived from the
+      # emitted views must equal what the runner stored, and the leak scan must reproduce
+      # from the raw channel text. Neither ran in CI before.
+      - name: Spec-driven analyser tests
+        working-directory: experiments
+        run: python3 test_analyze_generic.py
+
+      # Strategic generic traces replace truthful collision verdicts with report-based
+      # joint flags. Keep a dedicated recomputation gate so a truthful analyser cannot
+      # silently certify the strategic arm while reading the wrong field.
+      - name: Strategic generic analyser tests
+        working-directory: experiments
+        run: python3 test_analyze_strategic_generic.py
+
+      - name: Strategic generic reports
+        working-directory: experiments
+        run: |
+          python3 analyze_strategic_generic.py \
+            --traces traces-v2/portfolio3d1-strategic-deepseek
+          python3 analyze_strategic_generic.py \
+            --traces traces-v2/portfolio3d1-strategic-luna \
+            --compare traces-v2/portfolio3d1-strategic-deepseek
+
+      - name: Spec-driven leak scanner cases
+        working-directory: experiments
+        run: python3 test_leakscan_generic.py
+
+      - name: Architecture spec tests
+        working-directory: experiments
+        run: python3 test_spec.py
+
+      # Re-derives the seven required rates. Exits non-zero if schema conformance
+      # falls below the inclusion gate, so a leaking run cannot be quietly cited.
+      - name: Re-derive the required rates
+        working-directory: experiments
+        run: python3 analyze.py --regime m0_truthful
+
+      # Every p-value quoted on the landing page, regenerated from the traces. They
+      # previously existed only in a shell history, which is not a result.
+      - name: Regenerate the rung comparisons
+        working-directory: experiments
+        run: python3 analyze.py --compare
+
+      # `run_pilot` claims parallel and sequential runs produce byte-identical
+      # traces, because episodes are assembled after all turns complete rather than
+      # in completion order. That claim is load-bearing for reproducibility, so it
+      # is tested rather than asserted. The mock backend makes it free.
+      - name: Parallelism does not affect trace contents
+        working-directory: experiments
+        run: |
+          set -euo pipefail
+          python3 -m harness.run_pilot --agent mock --repeats 5 --concurrency 1 \
+            --out "$RUNNER_TEMP/seq"
+          python3 -m harness.run_pilot --agent mock --repeats 5 --concurrency 12 \
+            --out "$RUNNER_TEMP/par"
+          # The manifest is excluded because it records the concurrency, which is
+          # genuinely different between these two runs. The claim under test is that
+          # trace CONTENTS do not depend on completion order.
+          diff -r -x 'run-manifest*' "$RUNNER_TEMP/seq" "$RUNNER_TEMP/par"
+          echo "sequential and parallel runs agree byte for byte"
+
+      # The leak-accounting path is only exercised when something leaks. A pilot that
+      # has never seen a leak cannot claim its zero leak rate means anything, so the
+      # mock fixture drives that path and the inclusion gate is expected to FIRE.
+      - name: Leak accounting fires on a leaking run
+        working-directory: experiments
+        run: |
+          set -euo pipefail
+          python3 -m harness.run_pilot --agent mock --repeats 4 --mock-leak-every 2 \
+            --out "$RUNNER_TEMP/leaky"
+          if python3 analyze.py --traces "$RUNNER_TEMP/leaky"; then
+            echo "expected the inclusion gate to fail on a leaking run" >&2
+            exit 1
+          fi
+          echo "inclusion gate correctly refused a leaking run"
+
+  # Textual strict-trust gate. Separate from the Lean job so it runs even when the
+  # Atlas pin is still inactive — a hole introduced into a source file is caught
+  # immediately rather than whenever the downstream build is finally switched on.
+  strict-trust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - run: ./scripts/strict_trust.sh
+
+  # Downstream Lean consumer. The exact Atlas revision and the resolved manifest are
+  # committed, so this job reproduces the same external interface from a clean checkout.
+  # It cannot pass vacuously: check_axioms.py fails when the sources contain no public
+  # theorems.
+  lean:
+    needs: strict-trust
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+
+      # This job costs about four minutes, and 150s of that is fetching mathlib —
+      # paid whether or not a single Lean line changed. Most pushes here touch the
+      # harness, the traces or prose, none of which can affect a Lean build, because
+      # the Atlas is pinned by SHA and cannot move without `formal/lakefile.toml`
+      # moving with it.
+      #
+      # This FAILS OPEN. If the diff cannot be computed — first commit, force push,
+      # a shallow history with no common ancestor, a PR whose base was not fetched —
+      # the build runs. A verification skipped by accident is the failure this whole
+      # file exists to prevent, so ambiguity has to resolve toward doing the work.
+      - name: Does anything here affect the Lean build?
+        id: scope
+        run: |
+          set -uo pipefail
+          base=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            candidate="${{ github.event.pull_request.base.sha }}"
+            if git fetch --no-tags --depth=1 origin "$candidate" 2>/dev/null \
+               && git cat-file -e "$candidate^{commit}" 2>/dev/null; then
+              base="$candidate"
+            fi
+          elif git rev-parse --verify -q HEAD^ >/dev/null; then
+            base="$(git rev-parse HEAD^)"
+          fi
+
+          if [ -z "$base" ] || ! changed=$(git diff --name-only "$base" HEAD 2>/dev/null); then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "No comparable base — building rather than guessing."
+            echo 'Lean build: **ran** (no comparable base to diff against).' \
+              >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "changed since $base:"
+          echo "$changed" | sed 's/^/  /'
+          if printf '%s\n' "$changed" \
+             | grep -qE '^(formal/|scripts/check_axioms\.py$|\.github/workflows/ci\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo 'Lean build: **ran**.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing under formal/ changed. The Atlas pin is a SHA, so no"
+            echo "dependency can have moved either. Skipping the build."
+            echo 'Lean build: **skipped** — nothing under `formal/` changed.' \
+              >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # A green check that verified nothing is worse than a missing one, so this step
+      # fails when the committed formal consumer disappears.
+      - name: Is the Atlas pin active?
+        id: pin
+        run: |
+          set -euo pipefail
+          if [ ! -f formal/lakefile.toml ]; then
+            echo "formal/lakefile.toml is missing; the committed formal consumer cannot run." >&2
+            exit 1
+          fi
+          echo "active=true" >> "$GITHUB_OUTPUT"
+
+      # Timing, measured on the first green run of the activated pin: elan 17s,
+      # mathlib cache 150s, `lake build` 15s for all 762 jobs, axiom check 5s. The
+      # Lean work is the small part; nearly everything is fetching and decompressing
+      # 8542 mathlib oleans from the community cache.
+      #
+      # `use-github-cache` stays false, and the reason is worth writing down because
+      # the flag reads like free money. lean-action keys that cache on the COMMIT SHA
+      # (`lake-Linux-X64---<sha>`) with no prefix restore-key, so every push produces a
+      # key nothing has ever written. Turning it on was measured: the mathlib download
+      # happened anyway, the restore missed as it always will, and saving the .lake
+      # directory added 64s. It can only hit on a re-run of the same commit.
+      - uses: leanprover/lean-action@v1
+        if: steps.pin.outputs.active == 'true' && steps.scope.outputs.run == 'true'
+        with:
+          lake-package-directory: formal
+          use-mathlib-cache: 'true'
+          use-github-cache: 'false'
+
+      - name: Kernel axiom check
+        if: steps.pin.outputs.active == 'true' && steps.scope.outputs.run == 'true'
+        run: python3 scripts/check_axioms.py
