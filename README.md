@@ -241,13 +241,30 @@ interface, `analyze.py` would report that without editorial.
 
 | Artifact | Commit | Status |
 |---|---|---|
-| Atlas kernel, procurement example, and bounded portfolio target | release **`v0.5.1`** — **`ff4e7ce90426e0117355c4521eed1a90796c555b`** | **public and citable**; DOI [10.5281/zenodo.21849854](https://doi.org/10.5281/zenodo.21849854) |
-| Downstream Lean consumer | pinned to that revision in [`formal/lakefile.toml`](formal/lakefile.toml) | builds against the public Atlas (762 jobs), axiom set audited over 36 declarations |
+| Earlier formal baseline | this repository at `8804763f09e8f621e111311e516058a12ae6af99` → Atlas **`v0.5.1`** / **`ff4e7ce90426e0117355c4521eed1a90796c555b`** | immutable in git history; DOI [10.5281/zenodo.21849854](https://doi.org/10.5281/zenodo.21849854) |
+| Current Atlas formal substrate — kernel, procurement example, bounded portfolio target | release **`v0.7.0`** — **`863166c2193d73788073ace06375ce86e0b12e33`** | **public and citable**; tag `v0.7.0`, concept DOI [10.5281/zenodo.21483033](https://doi.org/10.5281/zenodo.21483033) |
+| Current downstream Lean consumer | exact pin in [`formal/lakefile.toml`](formal/lakefile.toml) and [`formal/lake-manifest.json`](formal/lake-manifest.json) | builds against the public Atlas (765 jobs), axiom set audited over 36 exported declarations |
 | Empirical pilot traces + analysis | this repository | reproducible; two model families through OpenRouter |
 | Two-panel figure | this repository | reproducible |
 | Bounded strategic game | this repository | executable finite enumeration, separate from the informational kernel |
 
 Atlas repository: <https://github.com/mbrcic/ai-safety-formalization-atlas>
+
+### Version provenance
+
+The earlier state of this repository is preserved in commit
+`8804763f09e8f621e111311e516058a12ae6af99`, whose downstream Lean package pins AI Safety
+Formalization Atlas `v0.5.1` (`ff4e7ce90426e0117355c4521eed1a90796c555b`). That commit is
+unchanged and remains the record of what was built against that Atlas release.
+
+Current development pins Atlas `v0.7.0` (`863166c2193d73788073ace06375ce86e0b12e33`).
+Since the earlier pin, the Atlas has generalized the coverage/collision argument through
+its reusable `Knowledge` knowability kernel: `JointObservation.Covers` is now definitionally
+`Knowledge.Knowable`, and the characterization this repository consumes is that generic
+result specialized to coalition-indexed evidence. The statements are unchanged — nothing
+here is reproved, weakened, or newly claimed by the repin. This repository remains a
+downstream consumer of the `Oversight.JointObservation` facade, and no empirical result,
+trace, or strategic claim depends on which Atlas revision is pinned.
 
 ## Checked artifacts
 

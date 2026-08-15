@@ -8,17 +8,29 @@ commit.
 ## Current state
 
 **The pin is active and committed.** `formal/lakefile.toml` carries a real `[[require]]`
-against the public Atlas release `v0.5.1`
-(`ff4e7ce90426e0117355c4521eed1a90796c555b`) — not a path require in a scratch directory,
-and not a branch that could move underneath the claim. Lake resolves it into a 762-job
+against the public Atlas release `v0.7.0`
+(`863166c2193d73788073ace06375ce86e0b12e33`) — not a path require in a scratch directory,
+and not a branch that could move underneath the claim. Lake resolves it into a 765-job
 build; the axiom audit covers 36 exported declarations and stays within
-`{propext, Classical.choice, Quot.sound}`.
+`{propext, Classical.choice, Quot.sound}`. The previous pin was Atlas `v0.5.1`
+(`ff4e7ce90426e0117355c4521eed1a90796c555b`), preserved in this repository's history at
+commit `8804763f09e8f621e111311e516058a12ae6af99`.
+
+Under `v0.7.0` the three generic laws this package consumes — `covers_iff_no_collision`,
+`covers_of_refines`, `postprocess_cannot_repair_collision` — are the Atlas `Knowledge`
+knowability kernel specialized to coalition-indexed evidence rather than separate
+arguments: `Covers q h` is definitionally `Knowledge.Knowable q.observe h`. Their
+statements are byte-identical to `v0.5.1`, so nothing here changed to accommodate the
+repin, and no separate `AISafetyAtlas.Knowledge` import is needed — the oversight facade
+re-exports what a consumer uses.
 
 The import is `AISafetyAtlas.Oversight.JointObservation`, **not** the `AISafetyAtlas`
 root. That is a claim about the Atlas as much as about this package: the kernel is
 separable, so a consumer who wants coverage does not also compile the computability,
-preference, social-choice and wireheading trees. Importing the root cost 1359 jobs and
-pulled the whole Foundation/Gödel chain for a package that references none of it.
+preference, social-choice and wireheading trees. Measured at the `v0.5.1` pin, importing
+the root cost 1359 jobs against 762 for the facade and pulled the whole Foundation/Gödel
+chain for a package that references none of it; that comparison has not been re-measured
+under `v0.7.0`, which grew the root surface further.
 
 Because the dependency lives in a public repository and both `lakefile.toml` and
 `lake-manifest.json` are committed, a clean checkout of this repository can run
@@ -84,8 +96,8 @@ generalization.
 1. confirm `formal/lean-toolchain` still matches `ai-safety-formalization-atlas/lean-toolchain`
    **byte for byte** — do not diagnose any dependency or manifest failure before this
    check passes;
-2. `scripts/pin_atlas.sh --public <sha>` with the full 40-character commit (a SHA, never
-   a branch name);
+2. `scripts/pin_atlas.sh <sha>` with the full 40-character commit (a SHA, never a branch
+   name) — the script takes exactly one argument and no flags;
 3. `cd formal && lake update && lake build`;
 4. `scripts/check_axioms.py`;
 5. commit both `formal/lakefile.toml` and `formal/lake-manifest.json` — CI's Lean job
