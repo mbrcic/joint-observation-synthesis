@@ -1,9 +1,11 @@
 # Appendix — formal preliminary results
 
 > **Status.** Every signature below is reproduced from the pinned public Atlas release
-> `v0.5.1` (`ff4e7ce`), and the downstream package compiles against that exact revision
+> `v0.7.0` (`863166c`), and the downstream package compiles against that exact revision
 > from a clean checkout. Proof bodies are not reproduced — only statements, definitions,
-> and witnesses.
+> and witnesses. The signatures are unchanged from the earlier `v0.5.1` (`ff4e7ce`) pin;
+> what changed under `v0.7.0` is that their proofs now specialize the Atlas `Knowledge`
+> knowability kernel rather than repeating the fibre argument here.
 
 All declarations live in `AISafetyAtlas.Oversight.JointObservation`; the procurement
 instance lives in `AISafetyAtlas.Examples.Oversight.JointObservation.Procurement`, and
@@ -420,24 +422,27 @@ Current state:
 
 | Check | Result |
 |---|---|
-| Atlas release `v0.5.1` (`ff4e7ce`), all reachable facade declarations | 269 declarations, axiom set `{propext, Classical.choice, Quot.sound}` |
+| Atlas release `v0.7.0` (`863166c`), facade closure imported here (`AISafetyAtlas.Oversight.JointObservation`, 9 modules), every `public theorem`/`lemma` | 33 declarations, axiom set `{propext, Classical.choice, Quot.sound}` |
 | Downstream consumer at the committed public pin, `public theorem` surface | 36 declarations, same axiom set |
 | Textual strict-trust gate, both packages | clean |
-| Downstream `lake build` against the public pin | 762 jobs |
+| Downstream `lake build` against the public pin | 765 jobs |
 
-Each of these runs in CI on every push, against the same public revision a reader would
-fetch, so the table above is regenerated rather than reported.
+Rows two through four run in this repository's CI on every push, against the same public
+revision a reader would fetch, so they are regenerated rather than reported. Row one is an
+audit of the pinned Atlas revision, measured against that revision; the Atlas's own CI
+audits its full public surface upstream.
 
 ## 7. Commits
 
 | Artifact | Commit |
 |---|---|
-| Atlas kernel, procurement example, and bounded portfolio target | release `v0.5.1` — `ff4e7ce90426e0117355c4521eed1a90796c555b` |
-| Atlas archived record | DOI [10.5281/zenodo.21849854](https://doi.org/10.5281/zenodo.21849854) |
-| Downstream Lean consumer | this repository, pinned to that revision in [`formal/lakefile.toml`](../formal/lakefile.toml) |
+| Atlas kernel, procurement example, and bounded portfolio target | release `v0.7.0` — `863166c2193d73788073ace06375ce86e0b12e33` |
+| Atlas archived record | concept DOI [10.5281/zenodo.21483033](https://doi.org/10.5281/zenodo.21483033) (all versions) |
+| Earlier pin, preserved in this repository's history at `8804763` | Atlas `v0.5.1` — `ff4e7ce90426e0117355c4521eed1a90796c555b`, DOI [10.5281/zenodo.21849854](https://doi.org/10.5281/zenodo.21849854) |
+| Downstream Lean consumer | this repository, pinned to the current revision in [`formal/lakefile.toml`](../formal/lakefile.toml) |
 
 The pin is a real `[[require]]` with a 40-character `rev` against a repository anyone can
-fetch, resolved by lake into a 762-job build. That is what makes the kernel *demonstrably*
+fetch, resolved by lake into a 765-job build. That is what makes the kernel *demonstrably*
 consumable by an external package rather than asserted to be: reproducibility is the whole
 content of a commit citation, and a build only the authors can run is a claim about the
 authors. The committed pin and cold-checkout build are the evidence for this claim.

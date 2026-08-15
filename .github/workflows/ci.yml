@@ -319,7 +319,8 @@ jobs:
           echo "active=true" >> "$GITHUB_OUTPUT"
 
       # Timing, measured on the first green run of the activated pin: elan 17s,
-      # mathlib cache 150s, `lake build` 15s for all 762 jobs, axiom check 5s. The
+      # mathlib cache 150s, `lake build` 15s for all jobs (762 at the v0.5.1 pin this
+      # was measured on; 765 at v0.7.0), axiom check 5s. The
       # Lean work is the small part; nearly everything is fetching and decompressing
       # 8542 mathlib oleans from the community cache.
       #
